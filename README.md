@@ -35,3 +35,10 @@
 - 창고에서 보충받을 경우 재고를 채운다
 	- (창고의 재고까지 고려하지 않는다.)
 - 한 음료의 최대 갯수는 10개로 제한한다.
+
+# 다이어그램
+
+![Pasted image 20250513220108](https://github.com/user-attachments/assets/1d86b4b0-5bce-481f-917d-a34a9b48beb4)
+
+
+
