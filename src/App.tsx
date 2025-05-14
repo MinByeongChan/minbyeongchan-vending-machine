@@ -1,98 +1,106 @@
-import { useEffect, useState } from "react"
-import { Box, Button, List, ListItem, ListItemButton, ListItemText, Stack, Typography } from "@mui/material"
-import type { Product } from "./types/schema"
+import { useState } from "react"
+import { Stack } from "@mui/material"
+import type { Product, RemainedCoin } from "./types/schema"
+import VendingMachineInputCoin from "./components/VendingMachineInputCoin"
+import Header from "./components/Header"
+import VendingMachineSelectDrink from "./components/VendingMachineSelectDrink"
+import VendingMachineResult from "./components/VendingMachineResult"
+import BaseLayout from "./components/layout/BaseLayout"
 
 function App() {
-  const [productList, setProductList] = useState<Product[]>([])
-  const [money, setMoney] = useState(0)
-  const [step, setStep] = useState(0)
+  const defaultMoney = {
+    "100": 0,
+    "500": 0,
+    "1000": 0,
+    "5000": 0,
+    "10000": 0
+  }
 
-  const validMoeny = ['10000', '5000', '1000', '500', '100']
+  const [step, setStep] = useState(0)
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [money, setMoney] = useState<RemainedCoin>(defaultMoney)
+  const sumOfMoney = Object.entries(money).reduce((acc, [key, value]) => acc + (Number(key) * value), 0)
+
+  const handleClickBackButton = () => {
+    setStep((prev) => Math.max(prev - 1, 0))
+  }
+
+  const handleClickResetButton = () => {
+    if (window.confirm('동전을 반환 하시겠습니까?')) {
+      setMoney(defaultMoney)
+    }
+  }
+
 
   const handleClickMoneyItem = (value: string) => {
-    setMoney((prev) => prev + Number(value))
+    setMoney((prev) => ({
+      ...prev,
+      [value]: prev[value as keyof RemainedCoin] + 1
+    }))
+  }
+
+  const handleNext = () => {
+    setStep((prev) => prev + 1)
   }
 
   const handleClickSubmitButton = () => {
-    if (!money) {
+    const isEmptyMoney = Object.values(money).every((value) => value === 0)
+    if (isEmptyMoney) {
       alert('금액을 넣어주세요.')
       return
     }
-    if (money < 600) {
+    if (sumOfMoney < 600) {
       alert('최소 금액은 600원 입니다.')
       return
     }
-    setStep(1)
+    handleNext()
   }
 
-  const fetchData = async () => {
-    const response = await fetch('http://localhost:3000/products')
-    const data = await response.json()
-    setProductList(data)
-  }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  const handleClickProductItem = (value: Product) => {
+    if (sumOfMoney < value.price) {
+      return
+    }
+    setSelectedProduct(value)
+  }
 
   return (
-    <Stack justifyContent="center" alignItems="center" height="100vh">
-      {step === 0 && (
-        <Box display="flex" flexDirection="column" gap={2} justifyContent="center" alignItems="center">
-          <Typography variant="h4" component="h1" gutterBottom>
-            Please put in the money, {money}
-          </Typography>
-          <List sx={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 2
-          }}>
-            {validMoeny.map((item) => (<ListItemButton key={item} onClick={() => handleClickMoneyItem(item)}>{item}</ListItemButton>))}
-          </List>
-          <Box display="flex" flexDirection="row" gap={2} justifyContent="center" alignItems="center">
-            <Button variant="contained" size="large" color="primary" onClick={handleClickSubmitButton} sx={{ height: '100%' }}>
-              Submit
-            </Button>
-          </Box>
-
-        </Box>
+    <BaseLayout>
+      {step !== 2 && (
+        <Header
+          sumOfMoney={sumOfMoney}
+          onBackClick={handleClickBackButton}
+          onResetClick={handleClickResetButton}
+          step={step}
+        />
       )}
 
-      {step === 1 && (
-        <Box display="flex" flexDirection="column" gap={2} justifyContent="center" alignItems="center">
-          <Typography variant="h4" component="h1" gutterBottom>
-            Choose a drink which you want
-          </Typography>
+      <Stack justifyContent="center" alignItems="center" height="100%" maxWidth={800} margin="0 auto" position='relative'>
+        {step === 0 && (
+          <VendingMachineInputCoin
+            sumOfMoney={sumOfMoney}
+            onMoneyClick={handleClickMoneyItem}
+            onSubmit={handleClickSubmitButton}
+          />
+        )}
 
-          <List sx={{
-            display: "flex",
-            flexDirection: "row",
-            gap: 2
-          }}>
-            {productList.map((item) => (
-              <ListItem key={item.id} sx={{
-                display: "flex",
-                width: 200,
-                flexDirection: "column",
-                gap: 1,
-                border: "1px solid black",
-                padding: 2,
-                borderRadius: 2,
-                transition: "0.1s ease-in-out",
-                cursor: "pointer",
-                "&:hover": {
-                  backgroundColor: "lightgray"
-                }
-              }}>
-                <ListItemText primary={item.name} />
-                <ListItemText secondary={`₩${item.price}`} />
-              </ListItem>
-            ))}
-          </List>
-        </Box>
-      )}
+        {step === 1 && (
+          <VendingMachineSelectDrink
+            selectedProduct={selectedProduct}
+            sumOfMoney={sumOfMoney}
+            onClickItem={handleClickProductItem}
+            onNext={handleNext}
+          />
+        )}
 
-    </Stack >
+        {step === 2 && selectedProduct && (
+          <VendingMachineResult
+            selectedProduct={selectedProduct}
+            sumOfMoney={sumOfMoney}
+          />
+        )}
+      </Stack>
+    </BaseLayout>
   )
 }
 
