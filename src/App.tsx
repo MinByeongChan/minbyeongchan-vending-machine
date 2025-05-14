@@ -129,7 +129,6 @@ function App() {
     })()
   }, [])
 
-  console.log('remainedCoin', remainedCoin)
 
   return (
     <BaseLayout>
