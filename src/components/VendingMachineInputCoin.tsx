@@ -11,7 +11,7 @@ export const VendingMachineInputCoin = ({ sumOfMoney, onMoneyClick, onSubmit }: 
     return (
         <Box display="flex" flexDirection="column" gap={2} justifyContent="center" alignItems="center">
             <Typography variant="h4" component="h1" gutterBottom>
-                Please put in the money, {sumOfMoney}
+                동전을 넣어주세요, {sumOfMoney} 원
             </Typography>
             <List sx={{
                 display: "flex",
@@ -25,7 +25,7 @@ export const VendingMachineInputCoin = ({ sumOfMoney, onMoneyClick, onSubmit }: 
                 ))}
             </List>
             <Box display="flex" flexDirection="row" gap={2} justifyContent="center" alignItems="center">
-                <Button variant="contained" size="large" color="primary" onClick={onSubmit} sx={{ height: '100%' }}>
+                <Button variant="contained" size="large" color="primary" onClick={onSubmit} sx={{ height: '100%' }} disabled={sumOfMoney === 0}>
                     Submit
                 </Button>
             </Box>

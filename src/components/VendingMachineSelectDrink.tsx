@@ -17,7 +17,6 @@ export const VendingMachineSelectDrink = ({
 }: SelectDrinkProps) => {
     const [productList, setProductList] = useState<Product[]>([])
 
-
     const fetchData = async () => {
         const response = await fetch('http://localhost:3000/products')
         const data = await response.json()
@@ -33,12 +32,12 @@ export const VendingMachineSelectDrink = ({
     return (
         <Box display="flex" flexDirection="column" gap={2} justifyContent="center" alignItems="center">
             <Typography variant="h4" component="h1" gutterBottom>
-                Choose a drink which you want
+                원하시는 음료를 선택해주세요.
             </Typography>
 
             {selectedProduct && (
                 <Typography variant="h5" component="h1" gutterBottom>
-                    Selected Drink: {selectedProduct?.name}
+                    {selectedProduct?.name}
                 </Typography>
             )}
 

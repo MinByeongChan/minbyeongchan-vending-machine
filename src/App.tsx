@@ -1,5 +1,5 @@
-import { useState } from "react"
-import { Stack } from "@mui/material"
+import { useEffect, useState } from "react"
+import { Stack, Typography } from "@mui/material"
 import type { Product, RemainedCoin } from "./types/schema"
 import VendingMachineInputCoin from "./components/VendingMachineInputCoin"
 import Header from "./components/Header"
@@ -19,7 +19,10 @@ function App() {
   const [step, setStep] = useState(0)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
   const [money, setMoney] = useState<RemainedCoin>(defaultMoney)
+  const [remainedCoin, setRemainedCoin] = useState<RemainedCoin>(defaultMoney)
   const sumOfMoney = Object.entries(money).reduce((acc, [key, value]) => acc + (Number(key) * value), 0)
+
+  const isDisorder = remainedCoin && Object.values(remainedCoin).reduce((acc, value) => acc + value, 0) === 0
 
   const handleClickBackButton = () => {
     setStep((prev) => Math.max(prev - 1, 0))
@@ -39,7 +42,23 @@ function App() {
     }))
   }
 
-  const handleNext = () => {
+  const fetchRemainedCoin = async () => {
+    const res = await fetch(`http://localhost:3000/remainedCoin`)
+    const fetchedData = await res.json()
+    return fetchedData
+  }
+
+  const updateRemainedCoin = async (remainedCoin: RemainedCoin) => {
+    const res = await fetch(`http://localhost:3000/remainedCoin`, {
+      method: 'PUT',
+      body: JSON.stringify(remainedCoin)
+    })
+    const updatedRemainedCoin = await res.json()
+    return updatedRemainedCoin
+  }
+
+
+  const handleNext = async () => {
     setStep((prev) => prev + 1)
   }
 
@@ -56,6 +75,45 @@ function App() {
     handleNext()
   }
 
+  const handleClickNextButton = async () => {
+    if (!selectedProduct) return;
+    let remain = sumOfMoney - selectedProduct.price
+    const calculatedRemainedCoin = defaultMoney
+    if (remain > 0) {
+      while (remain > 0) {
+        if (remain >= 10000) {
+          remain -= 10000
+          calculatedRemainedCoin['10000'] += 1
+        } else if (remain >= 5000) {
+          remain -= 5000
+          calculatedRemainedCoin['5000'] += 1
+        } else if (remain >= 1000) {
+          remain -= 1000
+          calculatedRemainedCoin['1000'] += 1
+        } else if (remain >= 500) {
+          remain -= 500
+          calculatedRemainedCoin['500'] += 1
+        } else if (remain >= 100) {
+          remain -= 100
+          calculatedRemainedCoin['100'] += 1
+        }
+      }
+
+      const response = await updateRemainedCoin({
+        100: remainedCoin['100'] - calculatedRemainedCoin['100'],
+        500: remainedCoin['500'] - calculatedRemainedCoin['500'],
+        1000: remainedCoin['1000'] - calculatedRemainedCoin['1000'],
+        5000: remainedCoin['5000'] - calculatedRemainedCoin['5000'],
+        10000: remainedCoin['10000'] - calculatedRemainedCoin['10000']
+      })
+      console.log('response', response)
+
+      setRemainedCoin(response)
+    }
+
+    handleNext()
+  }
+
 
   const handleClickProductItem = (value: Product) => {
     if (sumOfMoney < value.price) {
@@ -63,6 +121,15 @@ function App() {
     }
     setSelectedProduct(value)
   }
+
+  useEffect(() => {
+    (async () => {
+      const response = await fetchRemainedCoin()
+      setRemainedCoin(response)
+    })()
+  }, [])
+
+  console.log('remainedCoin', remainedCoin)
 
   return (
     <BaseLayout>
@@ -75,8 +142,15 @@ function App() {
         />
       )}
 
+
+
       <Stack justifyContent="center" alignItems="center" height="100%" maxWidth={800} margin="0 auto" position='relative'>
-        {step === 0 && (
+        {isDisorder && (
+          <Typography variant="h4" component="h1" gutterBottom color="error">
+            기능 장애( 자판기 동전이 없습니다. )
+          </Typography>
+        )}
+        {!isDisorder && step === 0 && (
           <VendingMachineInputCoin
             sumOfMoney={sumOfMoney}
             onMoneyClick={handleClickMoneyItem}
@@ -84,16 +158,16 @@ function App() {
           />
         )}
 
-        {step === 1 && (
+        {!isDisorder && step === 1 && (
           <VendingMachineSelectDrink
             selectedProduct={selectedProduct}
             sumOfMoney={sumOfMoney}
             onClickItem={handleClickProductItem}
-            onNext={handleNext}
+            onNext={handleClickNextButton}
           />
         )}
 
-        {step === 2 && selectedProduct && (
+        {!isDisorder && step === 2 && selectedProduct && (
           <VendingMachineResult
             selectedProduct={selectedProduct}
             sumOfMoney={sumOfMoney}
