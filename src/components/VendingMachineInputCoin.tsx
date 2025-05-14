@@ -20,7 +20,7 @@ export const VendingMachineInputCoin = ({ sumOfMoney, onMoneyClick, onSubmit }: 
             }}>
                 {VALID_MONEY.map((item) => (
                     <ListItemButton key={item} onClick={() => onMoneyClick(item)}>
-                        {item}
+                        +{item}
                     </ListItemButton>
                 ))}
             </List>
