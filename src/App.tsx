@@ -6,20 +6,13 @@ import Header from "./components/Header"
 import VendingMachineSelectDrink from "./components/VendingMachineSelectDrink"
 import VendingMachineResult from "./components/VendingMachineResult"
 import BaseLayout from "./components/layout/BaseLayout"
+import { DEFAULT_MONEY } from "./constants"
 
 function App() {
-  const defaultMoney = {
-    "100": 0,
-    "500": 0,
-    "1000": 0,
-    "5000": 0,
-    "10000": 0
-  }
-
   const [step, setStep] = useState(0)
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
-  const [money, setMoney] = useState<RemainedCoin>(defaultMoney)
-  const [remainedCoin, setRemainedCoin] = useState<RemainedCoin>(defaultMoney)
+  const [money, setMoney] = useState<RemainedCoin>(DEFAULT_MONEY)
+  const [remainedCoin, setRemainedCoin] = useState<RemainedCoin>(DEFAULT_MONEY)
   const sumOfMoney = Object.entries(money).reduce((acc, [key, value]) => acc + (Number(key) * value), 0)
 
   const isDisorder = remainedCoin && Object.values(remainedCoin).reduce((acc, value) => acc + value, 0) === 0
@@ -30,7 +23,7 @@ function App() {
 
   const handleClickResetButton = () => {
     if (window.confirm('동전을 반환 하시겠습니까?')) {
-      setMoney(defaultMoney)
+      setMoney(DEFAULT_MONEY)
     }
   }
 
@@ -78,7 +71,7 @@ function App() {
   const handleClickNextButton = async () => {
     if (!selectedProduct) return;
     let remain = sumOfMoney - selectedProduct.price
-    const calculatedRemainedCoin = defaultMoney
+    const calculatedRemainedCoin = DEFAULT_MONEY
     if (remain > 0) {
       while (remain > 0) {
         if (remain >= 10000) {
@@ -140,8 +133,6 @@ function App() {
           step={step}
         />
       )}
-
-
 
       <Stack justifyContent="center" alignItems="center" height="100%" maxWidth={800} margin="0 auto" position='relative'>
         {isDisorder && (
