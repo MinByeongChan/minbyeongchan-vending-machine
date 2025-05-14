@@ -1,6 +1,6 @@
 # 기술 스택
 
-- React, mui, json-server
+- React, typescript, vite, mui, json-server
 
 # 구동 방법
 
